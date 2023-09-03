@@ -45,7 +45,26 @@ class renderer{
     }
 
     render(){
-        this.ctx.clearRect(0, 0, this.width, this.height)
+        //Clears display every render loop.
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        //Looping through the display array
+        for(let i=0; i < this.cols *  this.rows; i++){
+            let x = (i % this.cols) * this.scale;
+            let y = Math.floor(i / this.cols) * this.scale;
+
+            if(this.display[i]){
+                //Pixel color black
+                this.ctx.fillStyle = '#000';
+                //Places a pixel at x,y position with width and height of scale
+                this.ctx.fillRect(x,y,this.scale,this.scale);
+            }
+        }
+    }
+
+    testRender(){
+        this.setPixel(0,0);
+        this.setPixel(5,2);
     }
 }
 
