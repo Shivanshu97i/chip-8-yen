@@ -20,5 +20,23 @@ class Keyboard{
             86: 0xF  // V
         }
 
+        //Array to keep track of the keys pressed.
+        this.keyPressed = [];
+
+        //For instructions that require waiting for the next key presses.
+        this.onNextKeyPress = null;
+        
+        //When a user presses a key.
+        window.addEventListener('keydown', this.onKeyDown.bind(this), false);
+        //When a user releases a key.
+        window.addEventListener('keyup', this.onKeyUp.bind(this), false);    
+    }
+
+    //To check if a certain key is pressed
+    isKeyPressed(keyCode){
+        //Checks the keyPressed array for the specified keyCode.
+        return this.keysPressed[keyCode];
     }
 }
+
+export default Keyboard;
