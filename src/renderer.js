@@ -1,4 +1,4 @@
-class renderer{
+class Renderer{
     constructor(scale){
         this.cols = 64;
         this.rows = 32;
@@ -65,7 +65,8 @@ class renderer{
     testRender(){
         this.setPixel(0,0);
         this.setPixel(5,2);
+        console.log("Test");
     }
 }
 
-export default renderer;
+export default Renderer;
