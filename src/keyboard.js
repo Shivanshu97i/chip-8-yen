@@ -37,6 +37,27 @@ class Keyboard{
         //Checks the keyPressed array for the specified keyCode.
         return this.keysPressed[keyCode];
     }
+
+    onKeyDown(event) {
+        //Key Pressedw
+        //event.which shows the key number that was pressed.
+        let key = this.KeyMap[event.which];
+
+        this.keyPressed[key] = true;
+
+        if(this.onNextKeyPress !== null && key){
+            //If a instruction a key press to continue its execution then this function will help.
+            this.onNextKeyPress(parseInt(key));
+            this.onNextKeyPress = null;
+        }
+    }
+
+    onKeyUp(event) {
+        //Key released
+        let key = this.KeyMap[event.which];
+        this.keysPressed[key] = false;
+    }
+    
 }
 
 export default Keyboard;
