@@ -12,13 +12,13 @@ class Speaker {
         this.gain.connect(this.finish);
 
     }
-
+    //Playing the sound.
     play(frequency) {
         //Checks if the audio processing has been made and checks so that there isn't a oscillator already present.
         if(this.audioCtx && !this.oscillator){
             //Sound generator that can produce waveforms.
             this.oscillator = this.audioCtx.createOscillator();
-            
+
             //Sets the frequency of the audio
             this.oscillator.frequency.setValueAtTime(frequency || 440, this.audioCtx.currentTime);
 
@@ -28,6 +28,15 @@ class Speaker {
             //Connects the oscillator to the gain to produce sound
             this.oscillator.connect(this.gain);
             this.oscillator.start();
+        }
+
+    }
+    //For stopping the sound
+    stop(){
+        if(this.oscillator) {
+            this.oscillator.stop();
+            this.oscillator.disconnect();
+            this.oscillator = null;
         }
     }
 }
