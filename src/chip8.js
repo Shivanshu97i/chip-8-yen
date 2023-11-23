@@ -1,9 +1,11 @@
 import Renderer from "./renderer.js";
 import Keyboard from "./keyboard.js";
+import Speaker from "./speaker.js";
 
 //Initializing renderer
 const ren = new Renderer(10);
 const keyboard = new Keyboard();
+const speaker = new Speaker();
 //Loop that loops at 60fps
 let loop;
 let fps = 60, fpsInterval, startTime, now, then, elapsed;
