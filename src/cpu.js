@@ -62,6 +62,223 @@ class CPU {
         }
  
     }
-    
+    loadRom(romName){
+        var self = this;
+
+    // Use fetch to make the HTTP GET request
+    fetch('roms/' + romName)
+        .then(response => {
+            // Check if the response is successful
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            // Convert the response to an ArrayBuffer
+            return response.arrayBuffer();
+        })
+        .then(program => {
+            // Create a Uint8Array from the ArrayBuffer
+            let programArray = new Uint8Array(program);
+
+            // Load the ROM/program into memory
+            self.loadProgramIntoMemory(programArray);
+        })
+        .catch(error => {
+            // Handle errors
+            console.error('Fetch error:', error);
+        });
+    }
+
+    cycle(){
+        //Number of instructions executed per cycle
+        for( let i = 0; i<this.speed; i++){
+            if(!this.paused){
+                //Stores high byte in pc and low byte in pc+1 then combines them with | bitwise operation
+
+                let opcode = (this.memory[this.pc] << 8 | this.memory[this.pc+1]);
+                this.executeInstruction(opcode);
+            }
+        }
+        if(!this.paused){
+            this.updateTimers();
+        }
+        this.playSound();
+        this.renderer.render();
+    }
+
+    updateTimers(){
+        // Subtracts 1 from delay timer register until it reaches 0 used for keeping track of certain events to occur
+        if(this.delayTimer > 0) {
+            this.delayTimer = this.delayTimer - 1;
+        }
+        
+        // Plays sound based on this register
+        if(this.soundTimer > 0 ){
+            this.soundTimer = this.soundTimer - 1;
+        }
+    }
+
+    playSound(){
+        if(this.soundTimer > 0){
+            //440 frequency
+            this.speaker.play(440);
+        }
+        else{
+            this.speaker.stop();
+        }
+    }
+
+    executeInstruction(opcode){
+        
+        //Every instruction is 2 bytes.
+        this.pc = this.pc + 2;
+
+        let x = (opcode & 0x0F00) >> 8; //Lower 4-bits of high byte
+        let y = (opcode & 0x00F0) >> 4; //Upper 4-bits of low byte
+        
+        //Instructions
+        switch (opcode & 0xF000) {
+    case 0x0000:
+        switch (opcode) {
+            case 0x00E0:
+                this.renderer.clear();
+                break;
+            case 0x00EE:
+                this.pc = this.stack.pop();
+                break;
+        }
+
+        break;
+    case 0x1000:
+        this.pc = (opcode & 0xFFF);
+        break;
+    case 0x2000:
+        this.stack.push(this.pc);
+        this.pc = (opcode & 0xFFF);
+        break;
+    case 0x3000:
+        if(this.v[x] === (opcode & 0xFF)){
+            this.pc += 2;
+        }
+        break;
+    case 0x4000:
+        if(this.v[x] !== (opcode & 0xFF)){
+            this.pc += 2;
+        }
+
+        break;
+    case 0x5000:
+        if(this.v[x] === this.v[y]){
+            this.pc += 2;
+        }
+
+        break;
+    case 0x6000:
+        this.v[x] = (opcode & 0xFF);
+        break;
+    case 0x7000:
+        this.v[x] = this.v[x] + (opcode & 0xFF);
+        break;
+    case 0x8000:
+        switch (opcode & 0xF) {
+            case 0x0:
+                this.v[x] = this.v[y];
+                break;
+            case 0x1:
+                this.v[x] = this.v[x] | this.v[y];
+                break;
+            case 0x2:
+                this.v[x] = this.v[x] & this.v[y];
+                break;
+            case 0x3:
+                 this.v[x] = this.v[x] ^ this.v[y];
+                break;
+            case 0x4:
+                let sum = (this.v[x] += this.v[y]);
+                this.v[0xF] = 0;
+                if (sum > 0xFF) {
+                this.v[0xF] = 1;
+                    }
+                this.v[x] = sum;
+                break;
+            case 0x5:
+                this.v[0xF] = 0;
+                if(this.v[x] > this.v[y]){
+                    this.v[0xF] = 1;
+                }
+                this.v[x] = this.v[x] - this.v[y];
+                break;
+            case 0x6:
+                this.v[0xF] = this.v[x] & 0x1;
+                this.v[x] = this.v[x] >> 1;
+                break;
+            case 0x7:
+                this.v[0xF] = 0;
+                if(this.v[y] > this.v[x]) {
+                    this.v[0xF] = 1;
+                }
+                this.v[x] = this.v[y] - this.v[x];
+                break;
+            case 0xE:
+                this.v[0xF] = this.v[x] & 0x80;
+                this.v[x] = this.v[x] << 1;
+                break;
+        }
+
+        break;
+    case 0x9000:
+        if(this.v[x]!=this.v[y]){
+            this.pc +=1;
+        }
+        break;
+    case 0xA000:
+        this.i = opcode & 0xFFF;
+        break;
+    case 0xB000:
+        this.pc = (opcode & 0xFFF) + this.v[0];
+        break;
+    case 0xC000:
+        let r = Math.floor(Math.random() * 0xFF);
+        this.v[x] = r & (opcode & 0xFF);
+        break;
+    case 0xD000:
+        break;
+    case 0xE000:
+        switch (opcode & 0xFF) {
+            case 0x9E:
+                break;
+            case 0xA1:
+                break;
+        }
+
+        break;
+    case 0xF000:
+        switch (opcode & 0xFF) {
+            case 0x07:
+                break;
+            case 0x0A:
+                break;
+            case 0x15:
+                break;
+            case 0x18:
+                break;
+            case 0x1E:
+                break;
+            case 0x29:
+                break;
+            case 0x33:
+                break;
+            case 0x55:
+                break;
+            case 0x65:
+                break;
+        }
+
+        break;
+
+    default:
+        throw new Error('Unknown opcode ' + opcode);
+}
+
+    }
 }
 export default CPU;
