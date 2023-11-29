@@ -35,7 +35,7 @@ class Keyboard{
     //To check if a certain key is pressed
     isKeyPressed(keyCode){
         //Checks the keyPressed array for the specified keyCode.
-        return this.keysPressed[keyCode];
+        return this.keyPressed[keyCode];
     }
 
     onKeyDown(event) {
@@ -55,7 +55,7 @@ class Keyboard{
     onKeyUp(event) {
         //Key released
         let key = this.KeyMap[event.which];
-        this.keysPressed[key] = false;
+        this.keyPressed[key] = false;
     }
     
 }

@@ -80,7 +80,7 @@ class CPU {
             let programArray = new Uint8Array(program);
 
             // Load the ROM/program into memory
-            self.loadProgramIntoMemory(programArray);
+            self.loadRomIntoMemory(programArray);
         })
         .catch(error => {
             // Handle errors
@@ -241,12 +241,35 @@ class CPU {
         this.v[x] = r & (opcode & 0xFF);
         break;
     case 0xD000:
+        let width = 8; //width of sprite 8
+        let height = opcode & 0xF; // Height is the last digit of opcode 
+        this.v[0xF] = 0; // For collision detection erasure of pixels
+        
+        for(let row = 0; row<height; row++){
+            let sprite = this.memory[this.i + row];
+                for(let col = 0; col<width; col++){
+                    if((sprite & 0x80) > 0){
+                        if(this.renderer.setPixel(this.v[x] + col, this.v[y] + row)){
+                        this.v[0xF] = 1;
+                        }
+                    }
+                    sprite <<= 1; //Allows to go through every bit of sprite
+                } 
+        }
+        
         break;
     case 0xE000:
         switch (opcode & 0xFF) {
             case 0x9E:
+                if(this.keyboard.isKeyPressed(this.v[x])){
+                    this.pc += 2;
+                }
                 break;
             case 0xA1:
+                if(!this.keyboard.isKeyPressed(this.v[x])){
+                    this.pc += 2;
+                }
+
                 break;
         }
 
@@ -254,22 +277,42 @@ class CPU {
     case 0xF000:
         switch (opcode & 0xFF) {
             case 0x07:
+                this.v[x] = this.delayTimer;
                 break;
             case 0x0A:
+                this.paused = true;
+
+                this.keyboard.onNextKeyPress = function(key) {
+                this.v[x] = key;
+                this.paused = false;
+                }.bind(this);
                 break;
             case 0x15:
+                this.delayTimer = this.v[x];
                 break;
             case 0x18:
+                this.soundTimer = this.v[x];
                 break;
             case 0x1E:
+                this.i = this.i + this.v[x];
                 break;
             case 0x29:
+                this.i = this.v[x] * 5;
                 break;
             case 0x33:
+                this.memory[this.i] = parseInt(this.v[x] / 100);
+                this.memory[this.i + 1] = parseInt((this.v[x] % 100) / 10);
+                this.memory[this.i + 2] = parseInt(this.v[x] % 10);
                 break;
             case 0x55:
+                for(let k=0; k<=x; k++){
+                    this.memory[this.i+k] = this.v[k];
+                }
                 break;
             case 0x65:
+                 for(let k=0; k<=x; k++){
+                    this.v[k] = this.memory[this.i+k];
+                }
                 break;
         }
 

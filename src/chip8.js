@@ -1,11 +1,13 @@
 import Renderer from "./renderer.js";
 import Keyboard from "./keyboard.js";
 import Speaker from "./speaker.js";
+import CPU from "./cpu.js";
 
 //Initializing renderer
-const ren = new Renderer(10);
+const renderer = new Renderer(10);
 const keyboard = new Keyboard();
 const speaker = new Speaker();
+const cpu = new CPU(renderer, keyboard, speaker);
 //Loop that loops at 60fps
 let loop;
 let fps = 60, fpsInterval, startTime, now, then, elapsed;
@@ -17,11 +19,15 @@ function init(){
     startTime = then;
 
     //Test code
-    ren.testRender();
-    ren.render();
+    // ren.testRender();
+    // ren.render();
 
     //requestAnimationFrame used for scheduling animations in the browser. 
     //Used to call a function before the next repaint of the web page. 
+    // loop = requestAnimationFrame(step);
+
+    cpu.loadSpritesIntoMemory(); 
+    cpu.loadRom('pumpkindressup.ch8'); //Change rom here
     loop = requestAnimationFrame(step);
 }
 
@@ -29,7 +35,7 @@ function step(){
     now = Date.now();
     elapsed = now - then;
     if(elapsed > fpsInterval){
-
+        cpu.cycle();
     }
 
     loop = requestAnimationFrame(step);
